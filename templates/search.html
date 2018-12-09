@@ -1,0 +1,14 @@
+<!doctype html>
+<title>Healthy Recipes</title>
+<head>
+   <script src="https://developer.edamam.com/attribution/badge.js"></script>
+</head>
+<link rel=stylesheet type=text/css href="{{ url_for('static',filename='styles.css') }}">
+<div class=page>
+  <h1>How healthy is my recipe?</h1>
+  {% for table in tables %}
+    <h2>{{titles[loop.index]}}</h2>
+    {{ table|safe }}
+  {% endfor %}
+</div>
+<div id="edamam-badge" data-color="white"></div>
