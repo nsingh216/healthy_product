@@ -57,7 +57,7 @@ My understanding of the Guassian Mixture Model:
 """
 ########################################################################################################################
 GM = GaussianMixture(
-    n_components=19
+    n_components=20
 )
 
 
