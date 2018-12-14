@@ -139,22 +139,15 @@ out = model.predict(X_train)
 print(str(num_clusters) + " clusters;" + " #iter= " + str(model.n_iter_) +
           "converged: " + str(model.converged_))
 
-silhouette_avg = silhouette_score(X_train, out)
-print("For n_clusters =", num_clusters,
-          "The average silhouette_score is :", silhouette_avg)
-
-    #sample_silhouette_values = silhouette_samples(X_train, out)
-    #print(str(sample_silhouette_values))
-
 
 # store back predictions of clusters after making
-#training_data["Cluster_Number"] = model.predict(X_train)
-#test_data["Cluster_Number"] = model.predict(X_test)
+training_data["Cluster_Number"] = model.predict(X_train)
+test_data["Cluster_Number"] = model.predict(X_test)
 
 
 # save off the data to csv files
-#training_data.to_csv("./data/train.csv")
-#test_data.to_csv("./data/test.csv")
+training_data.to_csv("./data/train.csv")
+test_data.to_csv("./data/test.csv")
 
 
 
@@ -189,7 +182,6 @@ def getNumClusters():
     #print(np.isnan(X_train).any())
     #print(np.isinf(X_train).any())
 
-    #X_train= pd.DataFrame(X_train, columns=prediction_attributes).dropna()
     model = GM.fit(X_train)
 
     out = model.predict(X_train)
