@@ -1,6 +1,5 @@
 from flask import Flask, render_template, request
 import config
-#from old_ideas import edamamRecipes as er
 import healthyIngredients as hi
 import pandas
 

@@ -5,10 +5,17 @@
 </head>
 <link rel=stylesheet type=text/css href="{{ url_for('static',filename='styles.css') }}">
 <div class=page>
-  <h1>How healthy is my recipe?</h1>
+  <h1>Find Healthy Food</h1>
   {% for table in tables %}
     <h2>{{titles[loop.index]}}</h2>
     {{ table|safe }}
   {% endfor %}
 </div>
-<div id="edamam-badge" data-color="white"></div>
+
+<button onclick="goBack()">Search Again</button>
+
+<script>
+function goBack() {
+    window.history.back();
+}
+</script>
