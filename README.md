@@ -30,7 +30,7 @@ I also created a simple UI component using the Flask Microframework in Python. T
  
  I used PyCharm to write, debug, and execute my code. There are two ways to run the code:
  
-1. Run ```website.py```. Running this file will load the simple Flask website. For simplicity, I have been using localhost for my project. Copy the link () to a browser (Chrome). This will load the webpage with a search box - enter a product that you want to search for and click search. The next page will display a few healthy options. 
+1. Run ```website.py```. Running this file will load the simple Flask website. For simplicity, I have been using localhost for my project. Copy the link (127.0.0.1:5000) to a browser (Chrome). This will load the webpage with a search box - enter a product that you want to search for and click search. The next page will display a few healthy options. 
 
 2. Run the function without a UI. The function that runs after the user clicks on the Search button is the ```getResultsForUser``` function in ```healthyIngredients.py```. This function takes one parameter - the search term. To run the non-website version of the code, uncomment line 330 in ```healthyIngredients.py``` and update the parameter with your search term. The provided example ```getResultsForUser("apple")``` searches for apple. It will print out the products to the console. 
  
