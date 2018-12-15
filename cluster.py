@@ -10,6 +10,58 @@ from sklearn.model_selection import train_test_split
 
 
 
+
+
+"""
+Determining the optimum number of clusters using silhouette analysis (SA)
+
+SA determines the distance between different clusters. If two or more clusters are very close to each other, 
+then there is a greater chance the border points might have been assigned to the wrong cluster.
+
+Reference:
+https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html#sphx-glr-auto-examples-cluster-plot-kmeans-silhouette-analysis-py
+"""
+def getNumClusters():
+
+    for num_clusters in range(24, 100):
+
+        GM = GaussianMixture(
+            n_components=num_clusters,
+        )
+
+        # using 80:20 train test ratio -- 70-80% = general recommendation for train data.
+        training_data, test_data = train_test_split(ingredient_attribute, test_size=0.2, random_state=0)
+
+        ## remove the product name -- not something we are using for the clustering
+        X_train = training_data[prediction_attributes].values
+        X_test = test_data[prediction_attributes].values
+
+    # run model
+    #print(np.isnan(X_train).any())
+    #print(np.isinf(X_train).any())
+
+        model = GM.fit(X_train)
+
+        out = model.predict(X_train)
+    #Mean= " + str(model.means_)
+        print(str(num_clusters) + " clusters;" + " #iter= " + str(model.n_iter_) +
+            "converged: " + str(model.converged_))
+
+        silhouette_avg = silhouette_score(X_train, out)
+        print("For n_clusters =", num_clusters,
+            "The average silhouette_score is :", silhouette_avg)
+
+    #sample_silhouette_values = silhouette_samples(X_train, out)
+    #print(str(sample_silhouette_values))
+
+
+
+
+
+
+
+
+
 ingredient_info = pd.read_csv("./data/proc_products_us.csv")
 
 #############################################################################
@@ -104,6 +156,7 @@ for i in ingredient_attribute[prediction_attributes].columns:
     plt.clf()
     """
 
+getNumClusters()
 
 ########################################################################################################################
 """
@@ -153,45 +206,4 @@ test_data.to_csv("./data/test.csv")
 
 
 
-"""
-Determining the optimum number of clusters using silhouette analysis (SA)
 
-SA determines the distance between different clusters. If two or more clusters are very close to each other, 
-then there is a greater chance the border points might have been assigned to the wrong cluster.
-
-Reference:
-https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_analysis.html#sphx-glr-auto-examples-cluster-plot-kmeans-silhouette-analysis-py
-"""
-def getNumClusters():
-
-    for num_clusters in range(2, 100):
-
-        GM = GaussianMixture(
-            n_components=num_clusters,
-            n_init=10
-        )
-
-    # using 80:20 train test ratio -- 70-80% = general recommendation for train data.
-    training_data, test_data = train_test_split(ingredient_attribute, test_size=0.2, random_state=0)
-
-    ## remove the product name -- not something we are using for the clustering
-    X_train = training_data[prediction_attributes].values
-    X_test = test_data[prediction_attributes].values
-
-    # run model
-    #print(np.isnan(X_train).any())
-    #print(np.isinf(X_train).any())
-
-    model = GM.fit(X_train)
-
-    out = model.predict(X_train)
-    #Mean= " + str(model.means_)
-    print(str(num_clusters) + " clusters;" + " #iter= " + str(model.n_iter_) +
-          "converged: " + str(model.converged_))
-
-    silhouette_avg = silhouette_score(X_train, out)
-    print("For n_clusters =", num_clusters,
-          "The average silhouette_score is :", silhouette_avg)
-
-    sample_silhouette_values = silhouette_samples(X_train, out)
-    #print(str(sample_silhouette_values))

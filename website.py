@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request
-import config
 import healthyIngredients as hi
 import pandas
 
@@ -35,5 +34,5 @@ def results():
 
 
 if __name__ == "__main__":
-    app.secret_key = config.flask_secret_key
+    #app.secret_key = config.flask_secret_key
     app.run(debug=True)

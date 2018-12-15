@@ -221,9 +221,10 @@ def getResultsForUser(searchTerm):
         clusterNum = cl.getCluster(clusterData, i)
         tag =cl.getClusterTag(clusterNum)
         if tag != "":
-            df.append((clusterNum[1], tag))
+            df.append((clusterNum, tag))
 
 
+    print(df)
     return df
 
 
@@ -327,4 +328,4 @@ def get_product_names(similarities, product_name):
 
 # this is the function that is called by the flask webpage. The parameter is the search term that the user searched for.
 
-# getResultsForUser("apple")
+getResultsForUser("apple")
