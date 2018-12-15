@@ -23,7 +23,7 @@ def getCluster(cluster_df, product):
 
     # get the row that corresponds with this product
     cluster = cluster_df.loc[cluster_df["product_name"] == product]
-    return cluster["Cluster_Number"].max()
+    return cluster["Cluster_Number"]
 
 
 def getClusterTag(clusterNum):
