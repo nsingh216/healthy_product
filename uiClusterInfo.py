@@ -11,9 +11,20 @@ def loadClusters():
     train = pd.read_csv("./data/train.csv")
     test = pd.read_csv("./data/test.csv")
     # combine the 2 dataframes
-    combined = pd.concat([test[["product_name", "Cluster_Number","nutrition-score-uk_100g"]],
-                          train[["product_name", "Cluster_Number", "nutrition-score-uk_100g"]]])
+
+    attributes = ["product_name",
+                  "energy_100g",
+                  "carbohydrates_100g",
+                  "sugars_100g",
+                  "nutrition-score-fr_100g",
+                  "nutrition-score-uk_100g",
+                  "nutrition_grade_fr",
+                  "Cluster_Number"
+                  ]
+
+    combined = pd.concat([test[attributes], train[attributes]])
     return combined
+
 
 def getCluster(cluster_df, product):
     """
@@ -29,28 +40,9 @@ def getCluster(cluster_df, product):
 def getClusterMeans(df):
     """
 
-    :param df: dataframe with cluster label and france and uk nutrition scores
+    :param df: dataframe with cluster label and uk nutrition scores
     :return: ranking of clusters
     """
 
     avgs = df.groupby(["Cluster_Number"], as_index=False).mean().sort_values(by="nutrition-score-uk_100g", ascending=True)
     return avgs
-
-def getClusterTag(clusterNum):
-    """
-    what is label is associated with this cluster?
-
-    :param clusterNum: cluster label
-    :return:
-    """
-    healthyClusterTags = {1: "LOW SAT FAT", 2: "LOW CHOLESTEROL"}
-
-    # get the keys from the cluster tags dictionary
-    keys = healthyClusterTags.keys()
-
-    if clusterNum in healthyClusterTags:
-        tag = healthyClusterTags[clusterNum]
-    else:
-        tag = ""
-
-    return tag

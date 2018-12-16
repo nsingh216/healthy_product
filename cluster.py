@@ -21,7 +21,7 @@ https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_ana
 def getNumClusters(df, attributes):
 
     scores = []
-    for num_clusters in range(19, 25):
+    for num_clusters in range(15, 25):
 
         GM = GaussianMixture(
             n_components=num_clusters
@@ -89,7 +89,7 @@ def normalize_data(ingredient_attribute, prediction_attributes):
         # clean the data  --
         # from Open Food Facts: https://static.openfoodfacts.org/data/data-fields.txt
         # "fields that end with _100g correspond to the amount of a nutriment (in g, or kJ for energy) for 100 g or 100 ml of product"
-        if i.endswith("_100g"):
+        if i.endswith("_100g") and np.issubdtype(ingredient_attribute[i].dtype, np.number):
             # based on the field description, the range of these columns = 0 to 100
             # drop columns with neg values
             ingredient_attribute = ingredient_attribute.drop(ingredient_attribute[ingredient_attribute[i] < 0].index)
@@ -97,12 +97,12 @@ def normalize_data(ingredient_attribute, prediction_attributes):
             ingredient_attribute = ingredient_attribute.drop(ingredient_attribute[ingredient_attribute[i] > 100].index)
 
 
-        # get values to transform
-        transform = np.asarray(ingredient_attribute[i].values)
-        # boxcox requires strictly positive values (> 0), so resetting zeros to a small pos #
-        getZeros = transform[transform < 1] = 1
+            # get values to transform
+            transform = np.asarray(ingredient_attribute[i].values)
+            # boxcox requires strictly positive values (> 0), so resetting zeros to a small pos #
+            getZeros = transform[transform < 1] = 1
 
-        """
+            """
         I found this example on Kaggle which looks very similar to the what I am trying to do:
         https://www.kaggle.com/allunia/hidden-treasures-in-our-groceries
         
@@ -120,18 +120,18 @@ def normalize_data(ingredient_attribute, prediction_attributes):
         The author also mentions using only 3 different variable for the clusters, so I decided to use the ones that 
         required the least amount of normalization (energy, carbs and sugar). These three are also the ones with the 
         lowest % of zeros.
-        
-        """
-        output = stats.boxcox(transform)
-        transformed_data = output[0]
+            
+            """
+            output = stats.boxcox(transform)
+            transformed_data = output[0]
 
-        # save back the transformed data
-        ingredient_attribute[i] = transformed_data
+            # save back the transformed data
+            ingredient_attribute[i] = transformed_data
 
-        # how many bins should the histogram plot have? calculated using range of each column
-        bins = int((transformed_data.max() - transformed_data.min()) / 10)
-        if bins < 3:
-            bins = 5
+            # how many bins should the histogram plot have? calculated using range of each column
+            bins = int((transformed_data.max() - transformed_data.min()) / 10)
+            if bins < 3:
+                bins = 5
 
         """
         ## replot to see the difference
@@ -213,7 +213,8 @@ def process_file():
                   "calcium_100g",
                   "iron_100g",
                   "nutrition-score-fr_100g",
-                  "nutrition-score-uk_100g"
+                  "nutrition-score-uk_100g",
+                  "nutrition_grade_fr"
                   ]
 
     # the clusters are still not looking great, need to try some different features
@@ -223,18 +224,24 @@ def process_file():
                   "carbohydrates_100g",
                   "sugars_100g",
                   "nutrition-score-fr_100g",
-                  "nutrition-score-uk_100g"
+                  "nutrition-score-uk_100g",
+                  "nutrition_grade_fr"
+
     ]
 
     ingredient_attribute = ingredient_info[attributes]
+    ingredient_attribute["nutrition_grade_fr"] = pd.Categorical(ingredient_attribute["nutrition_grade_fr"])
+    ingredient_attribute["nutrition_grade_fr"] = ingredient_attribute["nutrition_grade_fr"].cat.codes
 
-    # models in sklearn tend to have issues with missing values -- drop for now
+    # models in sklearn tend to have issues with missing values
     ingredient_attribute = ingredient_attribute.dropna()
 
     # apply same cleaning effort as in product names section
     ingredient_attribute["product_name"].replace(' ', np.nan, inplace=True)
     ingredient_attribute["product_name"] = ingredient_attribute[["product_name"]].dropna()
-    ingredient_attribute["product_name"].drop_duplicates(inplace=True)
+    ingredient_attribute = ingredient_attribute.drop_duplicates(subset=["product_name"], keep="first")
+    #test = ingredient_attribute[ingredient_attribute["product_name"] == "apple"]
+
     return ingredient_attribute
 
 
@@ -247,18 +254,12 @@ if __name__ == "__main__":
 
     # dont want to use product name as a predictor -- should really be using the list above with indices
     # but this is easier to switch around as I test different attributes
+    # reduce prediction attributes based on which one needed to be normalized the least & percent of zeros
     prediction_attributes = ["energy_100g",
-                             "fat_100g",
-                             "saturated-fat_100g",
-                             "cholesterol_100g",
                              "carbohydrates_100g",
                              "sugars_100g",
-                             "fiber_100g",
-                             "proteins_100g",
-                             "salt_100g",
-                             "sodium_100g",
-                             "calcium_100g",
-                             "iron_100g"
+                             "nutrition_grade_fr",
+                             "nutrition-score-fr_100g"
                              ]
 
     # commented because we don't need to normalize the data each time
@@ -267,21 +268,6 @@ if __name__ == "__main__":
     # read file instead
     #normalized_df = pd.read_csv("./data/transformed_data_us.csv")
     getNumZeros(normalized_df, prediction_attributes)
-
-    # update prediction attributes based on percent of zeros
-    prediction_attributes = ["energy_100g",
-                             "carbohydrates_100g",
-                             "sugars_100g",
-                             "fiber_100g",
-                             "proteins_100g",
-                             "salt_100g"
-                             ]
-
-    # reduce prediction attributes based on which one needed to be normalized the least
-    prediction_attributes = ["energy_100g",
-                             "carbohydrates_100g",
-                             "sugars_100g"
-                             ]
 
     getNumClusters(df, prediction_attributes)
 

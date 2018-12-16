@@ -165,7 +165,7 @@ def preprocessing():
 
 ############################################################################
 
-def setListofProducts():
+def setListofProducts(product_name):
     """
     clean the list of product names after the preprocessing step. The names are then stored in a csv that is used later
     to identify products with similar names.
@@ -174,7 +174,7 @@ def setListofProducts():
     """
 
     # read in the csv file with all the products and the nutrition attributes
-    product_name = pd.read_csv("./data/proc_products_us.csv")
+    # product_name = pd.read_csv("./data/proc_products_us.csv")
 
     # for this step we only care about the product names
     product_name['product_name'].replace(' ', np.nan, inplace=True)
@@ -199,13 +199,15 @@ def getResultsForUser(searchTerm):
     """
     # load the results
     clusterData = cl.loadClusters()
+    # only need to reload product after when new train/test.csv
+    # df_all_products = pd.DataFrame(clusterData["product_name"])
+    # setListofProducts(df_all_products)
 
     df_all_products = pd.read_csv("./data/sorted_products_us.csv")
-    #df_all_products = clusterData["product_name"]
 
     # use apple in case an empty string is passed
     if searchTerm.strip() == "":
-        searchTerm= "apple"
+        searchTerm = "apple"
 
     # add the search term to the top of the dataframe containing all the existing products
     data = []
@@ -218,23 +220,30 @@ def getResultsForUser(searchTerm):
 
     # Set up the dataframe to be returned to the user
     cols = ["Product", "Cluster_Number"]
-    df = pd.DataFrame(columns= cols)
+    df = pd.DataFrame(columns=cols)
 
     # get the ranking of the average health score of the clusters
-    means = cl.getClusterMeans(clusterData)
+    means = cl.getClusterMeans(pd.DataFrame(clusterData[["Cluster_Number", "nutrition-score-uk_100g"]]))
 
-    # which cluster does each of the similarily named product belong to?
+    # which cluster does each of the similarly named product belong to?
     for i in products:
         clusterNum = cl.getCluster(clusterData, i)
         if np.isnan(clusterNum):
-            clusterNum = 0
+            clusterNum = 20
         df = df.append({"Product": i, "Cluster_Number": clusterNum}, ignore_index=True)
 
     # sort the top 10 products based on which cluster they belong to
+    # join cluster avg scores to the product information
     df = df.set_index("Cluster_Number").join(means.set_index("Cluster_Number"), how="left",  lsuffix="_product")
-    df = df.sort_values(by="nutrition-score-uk_100g", ascending=False)
+    df.rename(columns={'nutrition-score-uk_100g': 'avg_nutrition-score-uk_100g'}, inplace=True)
+
+    # join in the other attributes
+    df = df.set_index("Product").join(clusterData.set_index("product_name"), how="left", lsuffix="_product")
+
+    # sort healthiest at top
+    df = df.sort_values(by="avg_nutrition-score-uk_100g", ascending=False)
     df = df.reset_index()
-    df = df["Product"]
+    #df = df["Product"]
 
     print(df)
     return df
