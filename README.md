@@ -61,6 +61,10 @@ I also created a simple UI component using the Flask Microframework in Python. T
             <br /> - *results*: loads search.html (webpage with search results)
 
   5. data (directory)
+      <br /> - *test.csv, train.csv*: these are the test and train subsets of the data with the cluster labels
+      <br /> - *transformed_data_us.csv*: contains data that the feature values have been transformed to a normal distribution using Box Cox transformation.
+      <br /> - *sorted_products_us.csv* : cleaned output of the sorted product names
+      <br /> - *proc_products_us.csv*: filter Kaggle dataset to products sold in the US and only keep the nutritional info attributes
   6. templates (directory)-- these files contain the html and css files used by Flask for the web component of this solution
       <br /> - *index.html*: landing page for the UI
       <br /> - *search.html*: the search results are returned here
