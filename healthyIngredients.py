@@ -197,32 +197,44 @@ def getResultsForUser(searchTerm):
     :param searchTerm: string
     :return: df: a pandas dataframe with the products that have similar names when compared to the search term.
     """
-    # load the resul
-    df_all_products = pd.read_csv("./data/sorted_products_us.csv")
+    # load the results
+    clusterData = cl.loadClusters()
 
-    ## use apple in case an empty string is passed
+    df_all_products = pd.read_csv("./data/sorted_products_us.csv")
+    #df_all_products = clusterData["product_name"]
+
+    # use apple in case an empty string is passed
     if searchTerm.strip() == "":
         searchTerm= "apple"
 
     # add the search term to the top of the dataframe containing all the existing products
     data = []
-    data.insert(0, {"product_name" : searchTerm})
+    data.insert(0, {"product_name": searchTerm})
     df_all_products = pd.concat([pd.DataFrame(data), df_all_products], ignore_index=True)
     selected_index = 0
 
     # identify similarly named products using tf_idf weights and cosine similarity
     products = calculateCosineSimilarity_withTF_IDF(product_name=df_all_products, selected_index= selected_index)
 
-    df = pd.DataFrame(columns=["Product", "Tag"])
+    # Set up the dataframe to be returned to the user
+    cols = ["Product", "Cluster_Number"]
+    df = pd.DataFrame(columns= cols)
 
-    clusterData = cl.loadClusters()
+    # get the ranking of the average health score of the clusters
+    means = cl.getClusterMeans(clusterData)
 
+    # which cluster does each of the similarily named product belong to?
     for i in products:
         clusterNum = cl.getCluster(clusterData, i)
-        tag =cl.getClusterTag(clusterNum)
-        if tag != "":
-            df.append((clusterNum, tag))
+        if np.isnan(clusterNum):
+            clusterNum = 0
+        df = df.append({"Product": i, "Cluster_Number": clusterNum}, ignore_index=True)
 
+    # sort the top 10 products based on which cluster they belong to
+    df = df.set_index("Cluster_Number").join(means.set_index("Cluster_Number"), how="left",  lsuffix="_product")
+    df = df.sort_values(by="nutrition-score-uk_100g", ascending=False)
+    df = df.reset_index()
+    df = df["Product"]
 
     print(df)
     return df
@@ -320,12 +332,13 @@ def get_product_names(similarities, product_name):
 ############################################################################
 
 ###### EXECUTION STARTS HERE #########
+if __name__ == "__main__":
 
-# processing on the original file to get to a file that will work for this project
-# commented because this doesnt need to run each time since the data is saved in a csv.
-# preprocessing()
+    # processing on the original file to get to a file that will work for this project
+    # commented because this doesnt need to run each time since the data is saved in a csv.
+    # preprocessing()
 
 
-# this is the function that is called by the flask webpage. The parameter is the search term that the user searched for.
+    # this is the function that is called by the flask webpage. The parameter is the search term that the user searched for.
 
-getResultsForUser("apple")
+    getResultsForUser("apple")

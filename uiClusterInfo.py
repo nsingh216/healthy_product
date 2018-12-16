@@ -11,7 +11,8 @@ def loadClusters():
     train = pd.read_csv("./data/train.csv")
     test = pd.read_csv("./data/test.csv")
     # combine the 2 dataframes
-    combined = pd.concat([test[["product_name", "Cluster_Number"]], train[["product_name", "Cluster_Number"]]])
+    combined = pd.concat([test[["product_name", "Cluster_Number","nutrition-score-uk_100g"]],
+                          train[["product_name", "Cluster_Number", "nutrition-score-uk_100g"]]])
     return combined
 
 def getCluster(cluster_df, product):
@@ -23,8 +24,17 @@ def getCluster(cluster_df, product):
 
     # get the row that corresponds with this product
     cluster = cluster_df.loc[cluster_df["product_name"] == product]
-    return cluster["Cluster_Number"]
+    return cluster["Cluster_Number"].max()
 
+def getClusterMeans(df):
+    """
+
+    :param df: dataframe with cluster label and france and uk nutrition scores
+    :return: ranking of clusters
+    """
+
+    avgs = df.groupby(["Cluster_Number"], as_index=False).mean().sort_values(by="nutrition-score-uk_100g", ascending=True)
+    return avgs
 
 def getClusterTag(clusterNum):
     """

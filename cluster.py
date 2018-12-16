@@ -8,6 +8,7 @@ from sklearn.metrics import silhouette_samples, silhouette_score
 from sklearn.mixture import GaussianMixture
 from sklearn.model_selection import train_test_split
 
+
 """
 Determining the optimum number of clusters using silhouette analysis (SA)
 
@@ -20,7 +21,7 @@ https://scikit-learn.org/stable/auto_examples/cluster/plot_kmeans_silhouette_ana
 def getNumClusters(df, attributes):
 
     scores = []
-    for num_clusters in range(2, 25):
+    for num_clusters in range(19, 25):
 
         GM = GaussianMixture(
             n_components=num_clusters
@@ -29,7 +30,7 @@ def getNumClusters(df, attributes):
         # using 80:20 train test ratio -- 70-80% = general recommendation for train data.
         training_data, test_data = train_test_split(df, test_size=0.2, random_state=0)
 
-        ## remove the product name -- not something we are using for the clustering
+        # remove the product name -- not something we are using for the clustering
         X_train = training_data[attributes].values
 
         #print(np.isnan(X_train).any())
@@ -41,7 +42,7 @@ def getNumClusters(df, attributes):
         out = model.predict(X_train)
         # Mean= " + str(model.means_)
 
-        print(str(num_clusters) + " clusters;" + " #iter= " + str(model.n_iter_) + "converged: " + str(model.converged_))
+        print(str(num_clusters) + " clusters;" + " #iter= " + str(model.n_iter_) + " converged: " + str(model.converged_))
 
 
         silhouette_avg = silhouette_score(X_train, out)
@@ -50,6 +51,7 @@ def getNumClusters(df, attributes):
         tup = (num_clusters, silhouette_avg, GM.bic(X_train))
         scores.append(tup)
         print(scores)
+
 
         # sample_silhouette_values = silhouette_samples(X_train, out)
         # print(str(sample_silhouette_values))
@@ -99,7 +101,29 @@ def normalize_data(ingredient_attribute, prediction_attributes):
         transform = np.asarray(ingredient_attribute[i].values)
         # boxcox requires strictly positive values (> 0), so resetting zeros to a small pos #
         getZeros = transform[transform < 1] = 1
-        transformed_data = stats.boxcox(transform)[0]
+
+        """
+        I found this example on Kaggle which looks very similar to the what I am trying to do:
+        https://www.kaggle.com/allunia/hidden-treasures-in-our-groceries
+        
+        The author mentions that the lambda values are very important, so I decided to compare what mine were:
+        
+        1) energy | 0.7 | 0.617
+        2) carbs  | 0.9 | -0.346
+        3) fat    | 0.5 | -82.03
+        4) protein| 0.1 | -6.44
+        5) sugar  | 0.03 | - 1.37
+        6) salt   | 0.005 | -2.44
+        
+        Trying out different ones did not help with the sihouette score in my case, so I decided to leave the default
+         
+        The author also mentions using only 3 different variable for the clusters, so I decided to use the ones that 
+        required the least amount of normalization (energy, carbs and sugar). These three are also the ones with the 
+        lowest % of zeros.
+        
+        """
+        output = stats.boxcox(transform)
+        transformed_data = output[0]
 
         # save back the transformed data
         ingredient_attribute[i] = transformed_data
@@ -193,6 +217,14 @@ def process_file():
                   ]
 
     # the clusters are still not looking great, need to try some different features
+    # reduce prediction attributes based on which one needed to be normalized the least and zeros
+    attributes = ["product_name",
+                  "energy_100g",
+                  "carbohydrates_100g",
+                  "sugars_100g",
+                  "nutrition-score-fr_100g",
+                  "nutrition-score-uk_100g"
+    ]
 
     ingredient_attribute = ingredient_info[attributes]
 
@@ -230,11 +262,11 @@ if __name__ == "__main__":
                              ]
 
     # commented because we don't need to normalize the data each time
-    # normalized_df = normalize_data(df, prediction_attributes)
+    normalized_df = normalize_data(df, prediction_attributes)
 
     # read file instead
-    # normalized_df = pd.read_csv("./data/transformed_data_us.csv")
-    # getNumZeros(normalized_df, prediction_attributes)
+    #normalized_df = pd.read_csv("./data/transformed_data_us.csv")
+    getNumZeros(normalized_df, prediction_attributes)
 
     # update prediction attributes based on percent of zeros
     prediction_attributes = ["energy_100g",
@@ -243,6 +275,12 @@ if __name__ == "__main__":
                              "fiber_100g",
                              "proteins_100g",
                              "salt_100g"
+                             ]
+
+    # reduce prediction attributes based on which one needed to be normalized the least
+    prediction_attributes = ["energy_100g",
+                             "carbohydrates_100g",
+                             "sugars_100g"
                              ]
 
     getNumClusters(df, prediction_attributes)
@@ -254,7 +292,7 @@ if __name__ == "__main__":
     """
     ########################################################################################################################
 
-    num_clusters = 4
+    num_clusters = 20
 
     GM = GaussianMixture(
             n_components=num_clusters
