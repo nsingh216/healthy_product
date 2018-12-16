@@ -40,6 +40,53 @@ I also created a simple UI component using the Flask Microframework in Python. T
 <br />
 
 
+
+##  **Files:**
+  1. cluster.py: This file contains 4 functions that I used to cluster the data into 20 different clusters using GMM.
+             <br /> - *getNumClusters*: calculates the BIC score and the silhouette score for a range of the number of clusters, to identify what number of clusters I should use in the final model run.
+             <br /> - *normalize_data*: GMM requires a normal distribution for the input data. Since the features I was using did not follow a normal distribution, I applied a box cox transformation from Python's sci-py in an effort to improve the quality of the clusters.
+             <br /> - *getNumZeros*: What percentage of each feature is zero? Some of the features had a large number of zeros that I felt were a factor in creating poor clusters. 
+             <br /> - *process_file*: cleans the file that holds the nutrition facts for the US products
+             <br /> - *main section*: split cleaned data into train and test datasets, applies GMM and saves the data into CSV files
+  2. healthyIngredients.py: 
+             <br /> - *preprocessing*: load products.tsv (file from Kaggle -- this file is too large for me to upload to github); Filters to US products and removes the unneeded features. Saves processed data to proc_products_us.csv
+             <br /> - *setListofProducts*: cleans the product names (remove duplicates, NaNs, sorts and saves into sorted_products_us.csv)
+             <br /> - *getResultsForUser*: this is the function that is called from the webpage. It identifies similarly named products, the cluster labels of the products and returns the dataframe with the data to the webpage. 
+  3. uiClusterInfo.py:             
+            <br /> - *getCluster*: returns the cluster that the product belongs to
+            <br /> - *getClusterMeans*: returns the mean health score of the cluster
+            <br /> - *loadClusters*: load the files that has the cluster labels from cluster.py
+  4. website.py:
+            <br /> - *home*: loads index.html (starting webpage)
+            <br /> - *results*: loads search.html (webpage with search results)
+
+  5. data (directory)
+  6. templates (directory)-- these files contain the html and css files used by Flask for the web component of this solution
+      <br /> - *index.html*: landing page for the UI
+      <br /> - *search.html*: the search results are returned here
+      <br /> - *styles.css*: style sheet for the website
+  7. requirements.txt: contains list of python package for this project
+
+<br /> 
+<br /> 
+
+## **Concepts:**
+* **Gaussian Mixture Model:** 
+GMM is similar to the K-Means clustering algorithm that we learned about in this course (select k mean points and assign the remaining points to the closest mean. Iteratively select new means by minimizing the sum of square distance measure.) GMM is a probabilistic model, and accounts for the existence of randomness by returning a probability distribution of the possible results rather than just one deterministic result. It also enable the creation of non-spherical clusters unlike K-Means. It also applies the expectation-maximization process that we learned about in this course (e-step = calculate the weights associated with the probability that the data point belongs to each of the available clusters; m-step = Obtain new parameters based on the weights in the E-step; repeat until the model converges to [local] minima.)
+
+* **BIC Score: (Bayesian Information Criterion)** The BIC score applies the Bayesian principle and determines what is the posterior probability of the model being true? The lower the BIC score the greater the chance of it being true. The BIC score is categorized as a penalty likelihood score, meaning that it penalizes complicated models to account for overfitting.
+
+* **Silhouette Score:** The silhouette score determines the quality of the clusters. It returns a value between -1 and 1 and higher scores are indicative of better clusters. To determine the quality of the clusters, it uses a distance measure (points close to the edges of multiple clusters have a greater chance of being mapped to the wrong cluster.)
+
+* **TF IDF Weighting: (Term Frequency Inverse Document Frequency)** Term frequency is the count of the number of occurrence of a term. Long documents or particularly frequent words can give the wrong picture of the important words in a text. The IDF portion determines how frequent the term is across the entire corpus and gives greater weight to the less common words. 
+
+
+* **Cosine Similarity:** Distance measure to determine how similar the text or product names were. Each product name can be visualized as a vector of words and each word is a different dimension. The similarity is determined by the angle between the two vectors. Two exactly same vectors will overlap and result in an angle = 0 between them (cos(0) = 1) and result in a similarity score of 1.
+
+<br /> 
+<br /> 
+
+
 ## Resources:
   **Data**: https://www.kaggle.com/openfoodfacts/world-food-facts <br />
   **Process/ Idea**: https://www.cambridge.org/core/journals/public-health-nutrition/article/comparison-of-heuristic-and-modelbased-clustering-methods-for-dietary-pattern-analysis/355233434504C5EC749927B49D95E2F7 <br />
